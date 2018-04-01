@@ -40,15 +40,12 @@ class App extends React.Component {
   }
 }
 
-const Anecdote = ({ selected }) => {
-  return (
-    <p>{ ANECDOTES[selected] }</p>
-  )
-}
+const Anecdote = ({ selected }) => <p>{ ANECDOTES[selected] }</p>
 
-const Button = ({ text, handleClick }) => ( 
-  <button onClick={handleClick}>{ text }</button> 
-)
+const Button = ({ text, handleClick }) => 
+  <button onClick={handleClick}>
+   { text }
+  </button> 
 
 const BestAnecdote = ({ anecdote }) => {
   if (anecdote.text === undefined) return ( <p>No votes</p> )
