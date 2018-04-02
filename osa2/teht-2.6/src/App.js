@@ -1,4 +1,5 @@
 import React from 'react'
+import axios from 'axios'
 import AddPerson from './components/AddPerson'
 import Phonebook from './components/Phonebook'
 
@@ -7,12 +8,7 @@ class App extends React.Component {
     super(props)
 
     this.state = {
-      persons: [
-        { name: 'Arto Hellas', number: '040-123456', id: 0 },
-        { name: 'Martti Tienari', number: '050-123456', id: 1 },
-        { name: 'Arto Järvinen', number: '060-123456', id: 2 },
-        { name: 'Lea Kutvonen', number: '070-123456', id: 3 },
-      ],
+      persons: [],
       filter: '',
     }
   }
@@ -32,6 +28,12 @@ class App extends React.Component {
         <Phonebook  persons={ this.state.persons } filter={ this.state.filter } />
       </div>
     )
+  }
+
+  componentDidMount() {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(res => this.setState({ persons: res.data }))
   }
 
   addPerson = ({ name, number }) => {
