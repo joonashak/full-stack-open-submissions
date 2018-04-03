@@ -1,7 +1,8 @@
 import React from 'react'
-import axios from 'axios'
 import AddPerson from './components/AddPerson'
 import Phonebook from './components/Phonebook'
+import service from './services/PhonebookService'
+import Notification from './components/Notification';
 
 class App extends React.Component {
   constructor(props) {
@@ -10,6 +11,7 @@ class App extends React.Component {
     this.state = {
       persons: [],
       filter: '',
+      notification: '',
     }
   }
 
@@ -25,23 +27,59 @@ class App extends React.Component {
         <h3>Lisää uusi</h3>
         <AddPerson action={ this.addPerson } />
         <h3>Numerot</h3>
-        <Phonebook  persons={ this.state.persons } filter={ this.state.filter } />
+        <Phonebook  
+          persons={ this.state.persons } 
+          filter={ this.state.filter }
+          deleteAction={ this.deletePerson }
+        />
+        <Notification message={ this.state.notification } />
       </div>
     )
   }
 
   componentDidMount() {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(res => this.setState({ persons: res.data }))
+    service.getAll().then(persons => this.setState({ persons }))
   }
 
   addPerson = ({ name, number }) => {
-    if (this.personExists(name)) return
+    const person = this.getPersonByName(name)
+    person ? this.updatePerson(person, number) : this.createPerson(name, number)
+  }
 
-    const id = Math.max(...this.state.persons.map(person => person.id)) + 1
-    const persons = this.state.persons.concat({ name, number, id })
-    this.setState({ persons })
+  createPerson = (name, number) => {
+    service
+      .create({ name, number })
+      .then(newPerson => {
+        this.setState({ persons: this.state.persons.concat(newPerson) })
+        this.showNotification(`${name} lisätty puhelinluetteloon.`)
+      })
+  }
+
+  updatePerson = (person, number) => {
+    service
+      .patch(person.id, { number })
+      .then(newPerson => {
+        const persons = this.state.persons.filter(p => p.id !== person.id)
+        this.setState({ persons: persons.concat(newPerson) })
+        this.showNotification(`Henkilön ${person.name} numero päivitetty.`)
+      })
+      .catch(error => {
+        const persons = this.state.persons.filter(p => p.id !== person.id)
+        this.setState({ persons })
+        this.createPerson(person.name, number)
+      })
+  }
+
+  deletePerson = id => () => {
+    if (!window.confirm('Haluatko varmasti poistaa?')) return null
+
+    service
+      .remove(id)
+      .then(() => {
+        const persons = this.state.persons.filter(p => p.id !== id)
+        this.setState({ persons })
+        this.showNotification('Henkilö poistettu.')
+      })
   }
 
   personExists = name => {
@@ -49,7 +87,16 @@ class App extends React.Component {
     return names.includes(name.toLowerCase())
   }
 
+  getPersonByName = name => this.state.persons.find(p => p.name === name)
+
   filter = event => this.setState({ filter: event.target.value })
+
+  showNotification = notification => {
+    this.setState({ notification })
+      setTimeout(() => {
+        this.setState({ notification: '' })
+      }, 3000)
+  }
 }
 
 export default App

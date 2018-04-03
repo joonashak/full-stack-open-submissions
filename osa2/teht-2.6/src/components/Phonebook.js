@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Phonebook = ({ persons, filter }) => {
+const Phonebook = ({ persons, filter, deleteAction }) => {
   const tableContent = persons
     .filter(person => person.name.toLowerCase().includes(filter.toLowerCase()))
-    .map(person => <Person name={ person.name } number={ person.number } key={ person.id } />)
+    .map(person => <Person person={ person } action={ deleteAction } key={ person.id } />)
   
   return (
     <table>
@@ -14,10 +14,13 @@ const Phonebook = ({ persons, filter }) => {
   )
 }
 
-const Person = ({ name, number }) => 
+const Person = ({ person, action }) => 
   <tr>
-    <td>{ name }</td>
-    <td>{ number }</td>
+    <td>{ person.name }</td>
+    <td>{ person.number }</td>
+    <td>
+      <button onClick={ action(person.id) }>poista</button>
+    </td>
   </tr>
 
 export default Phonebook
